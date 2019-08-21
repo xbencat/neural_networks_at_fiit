@@ -142,33 +142,38 @@ def gd_plot():
     xlist = np.linspace(-3.0, 3.0, 20)
     ylist = np.linspace(-3.0, 3.0, 20)
     X, Y = np.meshgrid(xlist, ylist)
-    a = 1.737
-    b = 1.232
+    a, b = 1, 1.2
     Z = a*X**2 + b*Y**2
 
     def show_background():
         plt.clf()
         ax = fig.add_subplot(1, 1, 1)
         ax.axis([-2, 2, -2, 2])
-        ax.set_title(r'$f(x, y) = \sin(x) \cos(y)$')  # TODO: make the x bold
+        ax.set_title(r'$f(x,y) = x^2 + 1.2y^2$')  # TODO: make the x bold
         ax.set_xlabel('$x$')
         ax.set_ylabel('$y$')
         cf = ax.contourf(X, Y, Z, levels=[i / 2 for i in range(20)], extend='both')
         cbar = fig.colorbar(cf)
         cbar.ax.set_ylabel('$f(x,y)$', rotation=270)
-        return ax
+        p = np.array([0.87, 0.52])
+        ax.plot(*p, 'w.')
+        return ax, p
 
-    def show_plot(alpha=0.3):
-        ax = show_background()
-        p = np.array([0.87, 1.23])
-        for _ in range(10):
+    def show_plot(alpha=[0.01, 0.3, 0.7, 1.2, 'custom'], custom=0.3):
+        if alpha == 'custom':
+            alpha = custom
+        ax, p = show_background()
+        txt = ax.text(1, -1.75, '', color='white')
+        num_steps = 10
+        for i in range(num_steps):
             d = -alpha*2*p
             d[0] *= a
             d[1] *= b
-            ax.arrow(*p, *d, color='black')
+            ax.arrow(*p, *d, color='white')
             p = p + d
+            txt.set_text(f'Step: {i+1}/10' if i + 1 < num_steps else 'Done')
             fig.canvas.draw()
             sleep(0.5)
 
     show_background()
-    interact_manual(show_plot)
+    interact.options(manual=True, manual_name='Run gradient descent')(show_plot)
