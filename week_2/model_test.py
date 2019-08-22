@@ -2,8 +2,7 @@ import unittest
 
 import numpy as np
 
-# from week_2.model import LinearRegressionModel
-from solutions.week_2.model import LinearRegressionModel
+from week_2.model import LinearRegressionModel
 
 
 class TestLinearRegressionModel(unittest.TestCase):
@@ -46,24 +45,38 @@ class TestLinearRegressionModel(unittest.TestCase):
             3.88)
 
     def test_compute_gradients(self):
-        print(self.model_1d.compute_gradients(*self.data_1d))
-        print(self.model_3d.compute_gradients(*self.data_3d))
-        # (array([-1.3375]), -0.625)
-        # (array([5.876, 4.775, 4.219]), 2.7800000000000002)
+        dw, db = self.model_1d.compute_gradients(*self.data_1d)
+        self.assertEqual(len(dw), 1)
+        self.assertAlmostEqual(dw[0], -1.3375)
+        self.assertAlmostEqual(db, -0.625)
+
+        dw, db = self.model_3d.compute_gradients(*self.data_3d)
+        self.assertEqual(len(dw), 3)
+        for desired, computed in zip([5.876, 4.775, 4.219], dw):
+            self.assertAlmostEqual(desired, computed)
+        self.assertAlmostEqual(db, 2.78)
 
     def test_step(self):
-        print(self.model_1d.step(*self.data_1d))
-        print(self.model_3d.step(*self.data_3d))
-        print(self.model_1d.w, self.model_1d.b)
-        print(self.model_3d.w, self.model_3d.b)
-        [0.540125] 0.21875
-        [-0.0876 - 0.0775 - 0.1219] -0.07800000000000001
+        self.model_1d.step(*self.data_1d)
+        w, b = self.model_1d.w, self.model_1d.b
+        self.assertEqual(len(w), 1)
+        self.assertAlmostEqual(w[0], 0.540125)
+        self.assertAlmostEqual(b, 0.21875)
+
+        self.model_3d.step(*self.data_3d)
+        w, b = self.model_3d.w, self.model_3d.b
+        self.assertEqual(len(w), 3)
+        for desired, computed in zip([-0.0876, -0.0775, -0.1219], w):
+            self.assertAlmostEqual(desired, computed)
+        self.assertAlmostEqual(b, -0.078)
 
     def test_loss(self):
-        print(self.model_1d.loss(*self.data_1d))
-        print(self.model_3d.loss(*self.data_3d))
-        2.086875
-        2.7271000000000014
+        self.assertAlmostEqual(
+            self.model_1d.loss(*self.data_1d),
+            2.086875)
+        self.assertAlmostEqual(
+            self.model_3d.loss(*self.data_3d),
+            2.7271)
 
 
 if __name__ == '__main__':

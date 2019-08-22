@@ -1,3 +1,5 @@
+import unittest
+
 import numpy as np
 
 
@@ -30,7 +32,7 @@ class LinearRegressionModel:
         :param x: np.array
         :return: float
         """
-        return ...  # FIXME: See 2.9.1
+        return ...  # FIXME: 2.9.1
 
     def compute_gradients(self, xs, ys):
         """
@@ -44,7 +46,7 @@ class LinearRegressionModel:
         :param ys:  np.array
         :return:    np.array, float
         """
-        dw = ...  # FIXME: See 2.9.2
+        dw = ...  # FIXME: 2.9.2
         db = ...
         return dw, db
 
@@ -62,7 +64,7 @@ class LinearRegressionModel:
         Performs one gradient descent step and updates the parameters accordingly.
         """
         dw, db = self.compute_gradients(xs, ys)
-        self.w = ...  # FIXME: See 2.9.3
+        self.w = ...  # FIXME: 2.9.3
         self.b = ...
 
     def loss(self, xs, ys):
@@ -71,5 +73,11 @@ class LinearRegressionModel:
 
         :return: float
         """
-        return ...  # FIXME: See 2.9.4
+        return ...  # FIXME: 2.9.4
+
+
+if __name__ == '__main__':
+    from model_test import TestLinearRegressionModel
+    unittest.main(TestLinearRegressionModel())
+
 
