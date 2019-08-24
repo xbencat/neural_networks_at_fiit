@@ -1,10 +1,14 @@
 import itertools
+import types
 from time import sleep
 
 from ipywidgets import *
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
+
+from week_2.backstage.load_data import load_data
+from solutions.week_2.model import LinearRegressionModel
 
 
 def one_d_plot():
@@ -15,7 +19,8 @@ def one_d_plot():
             w1=widgets.FloatSlider(min=-10, max=10, step=0.1, value=1.5),
             b=(-5.0, 5.0, 0.1),
             use_bias=True):
-        plt.clf()
+        print(repr(fig))
+        fig.clf()
 
         Y = w1 * X
         if use_bias:
@@ -39,13 +44,13 @@ def two_d_plot():
     ylist = np.linspace(-3.0, 3.0, 10)
     X, Y = np.meshgrid(xlist, ylist)
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(9, 5))
 
     def show_plot(
             w1=widgets.FloatSlider(min=-3, max=3, step=0.1, value=1.5),
             w2=widgets.FloatSlider(min=-3, max=3, step=0.1, value=1.5),
             b=widgets.FloatSlider(min=-3, max=3, step=0.1, value=0),):
-        plt.clf()
+        fig.clf()
 
         Z = w1 * X + w2 * Y + b
 
@@ -77,19 +82,17 @@ def two_d_plot():
 
     interact(show_plot)
 
+
 def manual_fit_plot(show_loss=False):
     fig = plt.figure()
 
-    true_w = -0.35
-    true_b = 1
-    scatter_X = np.array([-2, -0.2, 0, 0.9, 2.6])
-    noise = np.array([0.1, 0.1, -0.1, -0.1, 0.12])
-    scatter_Y = scatter_X * true_w + true_b + noise
+    data = load_data("toy_1.csv")
+    scatter_X, scatter_Y = data.x, data.y
 
     def show_plot(
             w1=widgets.FloatSlider(min=-10, max=10, step=0.1, value=1.5),
             b=(-5.0, 5.0, 0.1)):
-        plt.clf()
+        fig.clf()
 
         X = np.linspace(-3.0, 3.0, 2)
         Y = w1 * X + b
@@ -103,7 +106,7 @@ def manual_fit_plot(show_loss=False):
         ax.set_ylabel('$\hat{y}$')
         ax.set_title('$f(x) = \hat{y} = w_1x + b$')
         if show_loss:
-            pred_Y = scatter_X * w1 + b
+            pred_Y = np.dot(np.squeeze(scatter_X), w1) + b
             errors = (pred_Y - scatter_Y)**2
             loss = np.mean(errors)
             ax.text(1, -2.9, f'Current loss: {loss:.4f}')
@@ -146,7 +149,7 @@ def gd_plot():
     Z = a*X**2 + b*Y**2
 
     def show_background():
-        plt.clf()
+        fig.clf()
         ax = fig.add_subplot(1, 1, 1)
         ax.axis([-2, 2, -2, 2])
         ax.set_title(r'$f(x,y) = x^2 + 1.2y^2$')  # TODO: make the x bold
@@ -177,3 +180,117 @@ def gd_plot():
 
     show_background()
     interact.options(manual=True, manual_name='Run gradient descent')(show_plot)
+
+
+def add_magic(model, speed=2):
+
+    model._m = types.SimpleNamespace()
+    ends = np.array([3, -3])
+
+    def wrap_step(model_step):
+        def new_step(self, xs, ys):
+            self._m.ax1.plot(self.w, self.b, 'w.')
+            self._m.ax2_line.set_ydata(ends * self.w + self.b)
+
+            model_step(xs, ys)
+            self._m.fig.canvas.draw()
+            sleep(1/speed)
+
+        return new_step
+    model.step = types.MethodType(wrap_step(model.step), model)
+
+    def wrap_gd(model_gd):
+        def new_gd(self, xs, ys, num_steps):
+
+            self._m.fig = plt.figure(figsize=(9, 4))
+
+            self._m.ax1 = self._m.fig.add_subplot(1, 2, 1)
+            self._m.ax1.axis([-3, 3, -3, 3])
+            self._m.ax1.set_title(r'$L$')
+            self._m.ax1.set_xlabel('$w_1$')
+            self._m.ax1.set_ylabel('$b$')
+
+
+            xlist = np.linspace(-3.0, 3.0, 10)
+            ylist = np.linspace(-3.0, 3.0, 10)
+            X, Y = np.meshgrid(xlist, ylist)
+            Z = np.zeros_like(X)
+            w, b = model.w, model.b
+            for i, j in itertools.product(range(Z.shape[0]), range(Z.shape[1])):
+                model.w = xlist[i]
+                model.b = ylist[j]
+                Z[j, i] = self.loss(xs, ys)
+            model.w, model.b = w, b
+            self._m.ax1.contourf(X, Y, Z, levels=[i for i in range(0, int(0.8*np.max(Z)))], extend='both')
+
+            self._m.ax2 = self._m.fig.add_subplot(1, 2, 2)
+
+            self._m.ax2.scatter(xs, ys, color='red')
+            self._m.ax2.axis([-3, 3, -3, 3])
+            self._m.ax2.grid()
+            self._m.ax2.set_xlabel('$x_1$')
+            self._m.ax2.set_ylabel('$y$')
+            self._m.ax2.set_title('$\hat{y} = w_1x_1 + b$')
+            self._m.ax2_line, = self._m.ax2.plot(ends, self.w * ends + self.b, scalex=False, scaley=False)
+            self._m.fig.canvas.draw()
+
+            model_gd(xs, ys, num_steps)
+        return new_gd
+    model.gradient_descent = types.MethodType(wrap_gd(model.gradient_descent), model)
+    
+    
+def stochastic_plot():
+
+    data = load_data('toy_1.csv')
+    xs, ys = data.x, data.y
+
+    fig, axes = plt.subplots(2, 3, sharex=True, sharey=True)
+    fig.subplots_adjust(wspace=0.2)
+    fig.subplots_adjust(hspace=0.5)
+    axes = np.reshape(axes, (6,))
+    model = LinearRegressionModel(input_dim=1, w=[2], b=2)
+    xlabels=['', '', '', '$w_1$', '$w_1$', '$w_1$', ]
+    ylabels=['b', '', '', 'b', '', '', ]
+    titles = [f'$L^{{({i})}}$' for i in range(1,6)]
+    titles.append(r'$L = \frac{1}{5}\sum_{i=1}^5L^{(i)}$')
+    for ax_id, ax in enumerate(axes):
+        xlist = np.linspace(-3.0, 3.0, 10)
+        ylist = np.linspace(-3.0, 3.0, 10)
+        X, Y = np.meshgrid(xlist, ylist)
+        Z = np.zeros_like(X)
+        ax.set_xlabel(xlabels[ax_id])
+        ax.set_ylabel(ylabels[ax_id])
+        ax.set_title(titles[ax_id])
+        if ax_id == len(data.y):
+            ax_xs, ax_ys = data.x, data.y
+        else:
+            ax_xs, ax_ys = xs[ax_id, :], [ys[ax_id]]
+
+        w, b = model.w, model.b
+        for i, j in itertools.product(range(Z.shape[0]), range(Z.shape[1])):
+            model.b = ylist[j]
+            model.w = xlist[i]
+            Z[j, i] = model.loss(ax_xs, ax_ys)
+        model.w, model.b = [w], b
+
+        ax.contourf(X, Y, Z, levels=[i for i in range(0, 35)], extend='both')
+
+    arrows = []
+
+    def show_arrows(
+        w1=widgets.FloatSlider(min=-3, max=3, step=0.1, value=2),
+        b=widgets.FloatSlider(min=-3, max=3, step=0.1, value=-2)):
+        for arr in arrows:
+            arr.remove()
+        arrows.clear()
+        for ax_id, ax in enumerate(axes):
+            if ax_id == len(data.y):
+                ax_xs, ax_ys = data.x, data.y
+            else:
+                ax_xs, ax_ys = xs[ax_id, :], [ys[ax_id]]
+
+            model.w, model.b = [w1], b
+            dw, db = model.compute_gradients(ax_xs, ax_ys)
+            arrows.append(ax.arrow(model.w, model.b, -dw[0] * 0.1, -db * 0.1, color='white', head_width=0.2))
+
+    interact(show_arrows)

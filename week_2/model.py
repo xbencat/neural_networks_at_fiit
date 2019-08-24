@@ -1,5 +1,3 @@
-import unittest
-
 import numpy as np
 
 
@@ -9,7 +7,7 @@ class LinearRegressionModel:
 
     Attributes
     ----------
-    w : np.array
+    w : np.array dim=(input_dim)
         An array of weights.
     b : float
         Bias parameter.
@@ -29,7 +27,7 @@ class LinearRegressionModel:
         """
         Runs the linear regression model over input vector x and computes the predicted value y^
 
-        :param x: np.array
+        :param x: np.array dim=(input_dim)
         :return: float
         """
         return ...  # FIXME: 2.9.1
@@ -42,9 +40,9 @@ class LinearRegressionModel:
 
         xs and ys will have the same intrepretation for following methods as well.
 
-        :param xs:  2D np.array
-        :param ys:  np.array
-        :return:    np.array, float
+        :param xs:  2D np.array dim=(num_samples, input_dim)
+        :param ys:  np.array dim=(num_samples)
+        :return:    np.array dim=(input_dim), float
         """
         dw = ...  # FIXME: 2.9.2
         db = ...
@@ -77,7 +75,19 @@ class LinearRegressionModel:
 
 
 if __name__ == '__main__':
-    from model_test import TestLinearRegressionModel
-    unittest.main(TestLinearRegressionModel())
+    from week_2.model_test import run_tests
+    run_tests()
+
+
+
+
+
+
+
+
+
+
+
+
 
 
