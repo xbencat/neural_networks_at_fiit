@@ -50,9 +50,11 @@ class LinearRegressionModel:
 
     def gradient_descent(self, xs, ys, num_steps=100):
         """
-        Performs the gradient descent algorithm for num_steps steps.
+        Performs the gradient descent algorithm for num_steps steps. Returns the final parameters and
+        loss function value.
 
-        :param num_steps: int
+        :param      num_steps: int
+        :return:    np.array dim=(input_dim), float, float
         """
         for _ in range(num_steps):
             self.step(xs, ys)
@@ -75,8 +77,9 @@ class LinearRegressionModel:
 
 
 if __name__ == '__main__':
-    from week_2.model_test import run_tests
-    run_tests()
+    import week_2.tests.hub as tests
+    # tests.model_test()
+    tests.sgd_test()
 
 
 

@@ -77,13 +77,3 @@ class TestLinearRegressionModel(unittest.TestCase):
         self.assertAlmostEqual(
             self.model_3d.loss(*self.data_3d),
             2.7271)
-
-
-def run_tests():
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestLinearRegressionModel)
-    result = unittest.TextTestRunner(verbosity=1).run(suite)
-    return len(result.errors) + len(result.failures) == 0
-
-
-if __name__ == '__main__':
-    run_tests()
