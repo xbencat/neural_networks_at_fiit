@@ -190,7 +190,8 @@ def add_magic(model, speed=2):
     def wrap_step(model_step):
         def new_step(self, xs, ys):
             self._m.ax1.plot(self.w, self.b, 'w.')
-            self._m.ax2_line.set_ydata(ends * self.w + self.b)
+            self._m.ax2_line.set_ydata([self.predict(end) for end in ends])
+            self._m.txt.set_text(f'w: {self.w[0]:.2f}\nb: {self.b:.2f}\nloss: {self.loss(*self._m.data):.3f}')
 
             model_step(xs, ys)
             self._m.fig.canvas.draw()
@@ -200,7 +201,7 @@ def add_magic(model, speed=2):
     model.step = types.MethodType(wrap_step(model.step), model)
 
     def wrap_gd(model_gd):
-        def new_gd(self, xs, ys, num_steps):
+        def new_gd(self, xs, ys, **kwargs):
 
             self._m.fig = plt.figure(figsize=(9, 4))
 
@@ -209,7 +210,8 @@ def add_magic(model, speed=2):
             self._m.ax1.set_title(r'$L$')
             self._m.ax1.set_xlabel('$w_1$')
             self._m.ax1.set_ylabel('$b$')
-
+            self._m.txt = self._m.ax1.text(-2.8, 2.0, '', color='white')
+            self._m.data = (xs, ys)
 
             xlist = np.linspace(-3.0, 3.0, 10)
             ylist = np.linspace(-3.0, 3.0, 10)
@@ -231,13 +233,15 @@ def add_magic(model, speed=2):
             self._m.ax2.set_xlabel('$x_1$')
             self._m.ax2.set_ylabel('$y$')
             self._m.ax2.set_title('$\hat{y} = w_1x_1 + b$')
-            self._m.ax2_line, = self._m.ax2.plot(ends, self.w * ends + self.b, scalex=False, scaley=False)
+            self._m.ax2_line, = self._m.ax2.plot(ends, [self.predict(end) for end in ends], scalex=False, scaley=False)
             self._m.fig.canvas.draw()
 
-            model_gd(xs, ys, num_steps)
+            model_gd(xs, ys, **kwargs)
         return new_gd
     model.gradient_descent = types.MethodType(wrap_gd(model.gradient_descent), model)
-    
+    if hasattr(model, 'stochastic_gradient_descent'):
+        model.stochastic_gradient_descent = types.MethodType(wrap_gd(model.stochastic_gradient_descent), model)
+
     
 def stochastic_plot():
 
