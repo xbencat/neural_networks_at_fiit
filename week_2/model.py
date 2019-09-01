@@ -32,7 +32,7 @@ class LinearRegressionModel:
         """
         return ...  # FIXME: 2.9.1
 
-    def compute_gradients(self, xs, ys):
+    def gradients(self, xs, ys):
         """
         Computes the derivatives of loss function L w.r.t parameters w and b. Note that the attributes xs and ys are
         not one sample, but multiple samples. xs is a matrix, where i-th row is i-th sample feature vector and
@@ -78,8 +78,8 @@ class LinearRegressionModel:
 
 if __name__ == '__main__':
     import week_2.tests.hub as tests
-    # tests.model_test()
-    tests.sgd_test()
+    tests.model_test()
+    # tests.sgd_test() # FIXME: Uncomment this line for programming assignment 2.13
 
 
 
