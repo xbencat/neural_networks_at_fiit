@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from week_2.model import LinearRegressionModel
+from solutions.week_2.model import LinearRegressionModel
 
 
 class TestSGD(unittest.TestCase):
@@ -54,7 +54,7 @@ class TestSGD(unittest.TestCase):
 
     def test_shuffling(self):
         """
-        Tests if each sample is used exactly one for one epoch
+        Tests whether the shuffling is done correctly
         """
         self.model.stochastic_gradient_descent(*self.data, num_epochs=5, batch_size=2)
         ys = np.concatenate([
@@ -64,3 +64,7 @@ class TestSGD(unittest.TestCase):
             self.assertListEqual(
                 sorted(ys[i * 9: i * 9 + 9]),
                 [j for j in range(9)])
+        self.assertFalse(all(
+            np.array_equal(ys[:9], ys[i * 9: i * 9 + 9])
+            for i in range(1, 5)
+        ))
