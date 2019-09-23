@@ -4,7 +4,9 @@
 
 1. [Install docker](https://docs.docker.com/install/).
 This should be easy for UNIX based systems.
-On Windows you might need to enable the virtualization in your BIOS
+On Windows you might need to enable the virtualization in your BIOS.
+Windows 10 Home does not support Hyper-V virtualization, you need to upgrade it to Pro or Education version.
+You have these versions available as a student through MSDNAA.
 
 2. Clone this repository:
 
