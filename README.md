@@ -26,6 +26,8 @@ You have these versions available as a student through MSDNAA.
     For Windows:
     
     `docker run -p 8888:8888 -v c:/path/to/repo:/labs -it mpikuliak/nsiete`
+    
+    You should only change the `c:/path/to/repo`. Leave the `:/labs` at the end of `-v` flag there.
 
     You should see something like this:
 
